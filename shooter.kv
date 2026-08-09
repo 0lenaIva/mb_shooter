@@ -58,11 +58,26 @@
                     pos: root.center_x, dp(50)
 
         MDFloatLayout:
-            id: interface 
+            id: interface
             MDBoxLayout:
-                spacing: dp(20)
-                padding: dp(20) 
-                Widget:
+                spacing: dp(50)
+                padding: dp(20)
+                pos_hint: {'top':1}
+                size_hint_y: None
+                height: dp(50)
+                MDIcon:
+                    icon:'heart'
+                    font_size:'60sp'
+                    size_hint: None, None
+                    pos_hint:{'top':1}
+                    color:1,0,0,1
+                MDProgressBar:
+                    id: hp_status
+                    value: (ship.hp / ship.max_hp) * 100
+                    height:dp(50)
+                    size_hint_y: None 
+                    pos_hint:{'top':1}
+                    color: app.theme_cls.accent_color
                 MDFloatingActionButton:
                     icon:'pause'
                     pos_hint:{'top':1}
