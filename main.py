@@ -1,3 +1,5 @@
+from kivymd.uix.filemanager.filemanager import FitImage
+from kivymd.uix.backdrop.backdrop import MDFloatLayout
 from kivy.uix.accordion import NumericProperty
 from kivymd.uix.banner.banner import MDFlatButton
 from kivymd.uix.dialog import MDDialog
@@ -23,6 +25,25 @@ DIR_UP = 1
 DIR_DOWN = -1
 HP_DEF = 3
 
+class MoveBackground(MDFloatLayout):
+    def __init__(self,source, speed=dp(1), scale = 1, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.speed = speed
+        self.add_widget(FitImage(
+            source=source,
+            size_hint_y = scale
+        ))
+        self.add_widget(FitImage(
+            source=source,
+            size_hint_y = scale,
+            pos = (0, Window.size[1] * scale)
+        ))
+    def move(self):
+        for img in self.children:
+            img.pos[1] -= self.speed
+            if img.top <= 0:
+                img.pos[1] = img.size[1]
+
 class Shot(MDWidget):
     def __init__(self, direction,owner, **kwargs):
         super().__init__( **kwargs)
@@ -32,13 +53,13 @@ class Shot(MDWidget):
 class MainScreen(MDScreen):
     ...
 class Ship(Image):
-    hp = NumericProperty(HP_DEF)
-    max_hp = NumericProperty(HP_DEF)
+    hp = NumericProperty(HP_DEF)#<----------------------------------------
+    max_hp = NumericProperty(HP_DEF)#<-------------------------------
     def __init__(self,direction = DIR_UP ,hp=HP_DEF,**kwargs):
         super().__init__(**kwargs)
         self.direction = direction
-        self.max_hp = hp
-        self.hp = hp
+        self.max_hp = hp#<---------------------------------------------
+        self.hp = hp#<-------------------------------------------------
         
 
     def moveLeft(self):
@@ -88,7 +109,13 @@ class GameScreen(MDScreen):
         self.ship = self.ids.ship
         self.enemyShips = []
         self.pauseMenu = None
+        # задній фон-----------------------------------------------------
+        self.backBack = MoveBackground(source='assets\images\cosmos.jpg', speed = 0.2)
+        self.backFront = MoveBackground(source='assets\images\planets.png', speed=1, scale = 3)
 
+        self.ids.back.add_widget(self.backBack)
+        self.ids.back.add_widget(self.backFront)
+        #---------------------------------------------------------------------
         Window.bind(on_key_down=self._on_key_down)
         Window.bind(on_key_up=self._on_key_up)
 
@@ -110,6 +137,8 @@ class GameScreen(MDScreen):
         for ship in self.enemyShips:
             ship.update()
         self.manage_bullets()
+        self.backBack.move()#<----------------------------
+        self.backFront.move()#<------------------------------
         
     def manage_bullets(self):
         for bullet in self.bullets[:]:
