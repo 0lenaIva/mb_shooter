@@ -1,3 +1,4 @@
+from kivy.uix.accordion import NumericProperty
 from kivymd.uix.banner.banner import MDFlatButton
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.bottomsheet.bottomsheet import MDWidget
@@ -11,12 +12,16 @@ from kivy.metrics import sp, dp
 from random import randint
 from kivy.core.window import Keyboard
 from kivy.uix.image import Image
+from kivymd.uix.fitimage import fitimage
+from kivymd.uix.floatlayout import FloatLayout
+from kivy.properties import NumericProperty
 
 FPS = 60
 BULLET_SPEED = dp(10)
 SHIP_SPEED = dp(5)
 DIR_UP = 1
 DIR_DOWN = -1
+HP_DEF = 3
 
 class Shot(MDWidget):
     def __init__(self, direction,owner, **kwargs):
@@ -27,9 +32,10 @@ class Shot(MDWidget):
 class MainScreen(MDScreen):
     ...
 class Ship(Image):
-    def __init__(self,direction = DIR_UP ,**kwargs):
+    def __init__(self,direction = DIR_UP ,hp=HP_DEF,**kwargs):
         super().__init__(**kwargs)
         self.direction = direction
+        self.hp = self.max_hp = hp
 
     def moveLeft(self):
         self.pos[0] -= SHIP_SPEED
@@ -126,7 +132,10 @@ class GameScreen(MDScreen):
         else:
             if bullet.collide_widget(self.ship):
                 self.remove_bullet(bullet)
-                self.game_over()
+                self.ship.hp -= 1
+                if self.ship.hp <= 0:
+                    self.game_over()
+                    
     def game_over(self):
         self.updateEvent.cancel()
         self.spawnEvent.cancel()
