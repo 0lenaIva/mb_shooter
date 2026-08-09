@@ -32,10 +32,14 @@ class Shot(MDWidget):
 class MainScreen(MDScreen):
     ...
 class Ship(Image):
+    hp = NumericProperty(HP_DEF)
+    max_hp = NumericProperty(HP_DEF)
     def __init__(self,direction = DIR_UP ,hp=HP_DEF,**kwargs):
         super().__init__(**kwargs)
         self.direction = direction
-        self.hp = self.max_hp = hp
+        self.max_hp = hp
+        self.hp = hp
+        
 
     def moveLeft(self):
         self.pos[0] -= SHIP_SPEED
@@ -135,7 +139,7 @@ class GameScreen(MDScreen):
                 self.ship.hp -= 1
                 if self.ship.hp <= 0:
                     self.game_over()
-                    
+
     def game_over(self):
         self.updateEvent.cancel()
         self.spawnEvent.cancel()
