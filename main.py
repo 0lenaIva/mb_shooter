@@ -17,6 +17,7 @@ from kivy.uix.image import Image
 from kivymd.uix.fitimage import fitimage
 from kivymd.uix.floatlayout import FloatLayout
 from kivy.properties import NumericProperty
+from particles import Particle
 
 FPS = 60
 BULLET_SPEED = dp(10)
@@ -24,6 +25,7 @@ SHIP_SPEED = dp(5)
 DIR_UP = 1
 DIR_DOWN = -1
 HP_DEF = 3
+
 
 class MoveBackground(MDFloatLayout):
     def __init__(self,source, speed=dp(1), scale = 1, *args, **kwargs):
@@ -60,7 +62,10 @@ class Ship(Image):
         self.direction = direction
         self.max_hp = hp#<---------------------------------------------
         self.hp = hp#<-------------------------------------------------
-        
+        #animation
+        self.anim_delay = .2
+        self._lastAnim = self.anim_delay
+        self._currentAnim = 0
 
     def moveLeft(self):
         self.pos[0] -= SHIP_SPEED
@@ -73,13 +78,16 @@ class Ship(Image):
         shot.y = self.top if self.direction == DIR_UP else self.y - shot.height
         self.parent.parent.parent.parent.bullets.append(shot)
         self.parent.add_widget(shot)
-    def update(self):#<----------------------------------
+    def update(self, dt):#<----------------------------------
+        self.animation(dt)
+    def animation(self, dt):
         pass
 class PlayerShip(Ship):
     def __init__(self, direction=DIR_UP, **kwargs):
         super().__init__(direction, **kwargs)
 
-    def update(self, keys):
+    def update(self,dt, keys):
+        super().update(dt)#<-------------------------------------------
         for key in keys:
             if keys[key] == True:
                 if key == 'left' and self.center_x >0:
@@ -89,6 +97,24 @@ class PlayerShip(Ship):
                 if key == 'shot':
                     self.shot()
                     keys[key] = False
+    def animation(self, dt):
+        self._lastAnim += dt
+        if self._lastAnim >= self.anim_delay:
+            self._lastAnim = 0
+            p = Particle(
+                source = r'assets\images\particle_simple.png',
+                width = 70 + randint(0,30),
+                center_x = self.center_x + randint(-10, 10),
+                y = self.y + randint(-15,0),
+                life = .6,
+                speed = 150,
+                direction=self.direction * -1
+            )
+            if self.parent:
+                self.parent.add_widget(p)
+                
+            
+
 class EnemyShip(Ship):
     def __init__(self, direction=DIR_DOWN, **kwargs):
         super().__init__(direction, **kwargs)
@@ -133,7 +159,7 @@ class GameScreen(MDScreen):
         self.enemyShips.append(ship)
         self.ids.front.add_widget(ship)
     def update(self, dt):
-        self.ship.update(self.eventkeys)
+        self.ship.update(dt, self.eventkeys)#<---------------------------------------
         for ship in self.enemyShips:
             ship.update()
         self.manage_bullets()
